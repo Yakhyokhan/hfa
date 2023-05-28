@@ -8,6 +8,8 @@ from .manager import UserManager
 
 # Create your models here.
 
+# in here custom user model User model will be connected other models like CompanyAdmin, Workers etc
+
 class User(AbstractBaseUser):
     username_validator = UnicodeUsernameValidator()
 
@@ -29,7 +31,7 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "username"
     
 
-    
+#and this is for user full information
 
 class UserWithInfo(User, PermissionsMixin):
     first_name = models.CharField(_("first name"), max_length=150, blank=True)
