@@ -9,6 +9,10 @@ class ResponsiblePerson(models.Model):
     type = models.CharField(max_length=25)
     next = models.ForeignKey('self', on_delete=models.PROTECT)
 
+# class Filler(ResponsiblePerson):
+    type = 'filler'
+    
+
 # this group resbonsible for some defined documents
 
 class ResponsibleGroup(models.Model):
