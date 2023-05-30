@@ -1,6 +1,11 @@
-
+'''
+this party is to detect HTML tags
+'''
 
 class Tag:
+    '''
+    base HTML tag class
+    '''
     type: str = 'tag'
 
 
@@ -14,22 +19,28 @@ class Tag:
         return self.__str__()
     
 tag_type = Tag.type
-    
+
+#to look for tag class with its type  
 tags:dict[str:Tag] = {
     tag_type: Tag
 }
     
+
 class TagFactory:
+    '''
+    abstract class to create HTML tag classes
+    '''
     @classmethod
     def create(self):
         return Tag()
 
 
-
+# to look for tag factories with type of tag
 tag_factories: dict[str: TagFactory] = {
     tag_type: TagFactory
 }
 
+#to create any HTML tag from all Tags
 class AnyTagFactory:
     @classmethod
     def create(self, type:str, **kwarg):
@@ -38,6 +49,9 @@ class AnyTagFactory:
         return tag
 
 class Ability:
+    '''
+    abstract class for abilities
+    '''
     pass
 
 class Child(Ability):
@@ -76,22 +90,21 @@ class Parent(Ability):
             type = child.pop('type')
             self.add_child(AnyTagFactory.create(type = type, **child))
 
-class Identificator:
-    id = 0
-    @classmethod
-    def get_id(self):
-        res = self.id
-        self.id += 1
-        return res
+# class Identificator:
+#     id = 0
+#     @classmethod
+#     def get_id(self):
+#         res = self.id
+#         self.id += 1
+#         return res
 
 class Body(Tag, Parent, Child):
     type = 'body'
     def __init__(self, childs: list[Tag, Child] = []):
         super().__init__(childs)
-        self.id = Identificator.get_id()
         
     def __str__(self) -> str:
-        return f'Body(id: {self.id}, type:{self.type}, childs:{self.childs})'
+        return f'Body(type:{self.type}, childs:{self.childs})'
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -128,9 +141,7 @@ class BodyFactory:
     @classmethod
     def create(self, creation_type = 'with_dict', childs:list[dict] = []):
         creation_type = body_factory_type[creation_type]
-        isinstance = creation_type.create(childs)
-        childs = []
-        return isinstance
+        return creation_type.create(childs)
 
 
     
