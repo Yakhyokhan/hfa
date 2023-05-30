@@ -18,3 +18,5 @@ class ResponsiblePerson(models.Model):
 class ResponsibleGroup(models.Model):
     first = models.ForeignKey(ResponsiblePerson, on_delete=models.PROTECT, related_name='first_responsible_person')
     last = models.ForeignKey(ResponsiblePerson, on_delete=models.PROTECT, related_name='last_responsible_person')
+
+
