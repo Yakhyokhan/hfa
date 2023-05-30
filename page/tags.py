@@ -156,13 +156,13 @@ tag_factories[input_type] = InputFactory
 
         
 
-# parent = AnyTagFactory.create(type='body', creation_type = 'with_dict', childs = [{'type': 'body', 'childs': [{'type': 'input', 'value': '434343'},{'type': 'input'}]}])
-# parent
-# # body = Body([Body()])
-# # body2 = Body()
-# print('........')
-# # print(body)
-# # print(body2)
-# print('....................')
-# print(parent)
-# print('..........') 
+parent = AnyTagFactory.create(type='body', creation_type = 'with_dict', childs = [{'type': 'body', 'childs': [{'type': 'input', 'value': '434343'},{'type': 'input'}]}])
+parent
+# body = Body([Body()])
+# body2 = Body()
+print('........')
+# print(body)
+# print(body2)
+print('....................')
+print(parent)
+print('..........') 
