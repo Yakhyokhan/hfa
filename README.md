@@ -2,9 +2,9 @@
 HI, every one.I started my new project hfm(helper for management).
 The goal of this project is to enable clear and quick communication between employees and to keep information organized <br><br>
 
-the apps exists now:
-  *user - customers information to authintificate ...
-  *company - the company which wants management informations
+the apps exists now:<br>
+  *user - customers information to authintificate ...<br>
+  *company - the company which wants management informations<br>
   *adress - the adresses of companies ...
   *staff - the staff, works, responsiblies for works of companies
   *page - HTML pages users make to take clear information
