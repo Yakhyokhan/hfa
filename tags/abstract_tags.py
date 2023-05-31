@@ -2,6 +2,8 @@
 this party is to detect HTML tags
 '''
 
+
+
 class Tag:
     '''
     base HTML tag class
@@ -21,14 +23,36 @@ class Tag:
     def __repr__(self) -> str:
         return self.__str__()
     
-tag_type = Tag.type
+class Types:
+    types: object
+    @classmethod
+    def add_type(self):
+        pass  
 
-#to look for tag class with its type  
-tags = [
-    tag_type
-]
+    @classmethod
+    def add_cls(self):
+        pass
+
+    @classmethod
+    def get_all_types(self):
+        return self.types
+
+# tag types
+class TagType(Types):
+    types = []
+    @classmethod
+    def add_type(self, type: str):
+        self.types.append(type)    
+
+    @classmethod
+    def add_cls(self, cls: Tag):
+        self.add_type(cls.type)
+
+    @classmethod
+    def get_type(self,i):
+        return self.types[i]
     
-
+TagType.add_cls(Tag)
 class TagFactory:
     '''
     parent class to create HTML tag classes
@@ -40,15 +64,29 @@ class TagFactory:
 
 
 # to look for tag factories with type of tag
-tag_factories: dict[str: TagFactory] = {
-    tag_type: TagFactory
-}
+
+class TagFactoriesType(Types):
+    types = {}
+    @classmethod
+    def add_type(self, type: str, factory:TagFactory):
+        self.types[type] = factory   
+
+    @classmethod
+    def add_cls(self, cls: Tag, factory: TagFactory):
+        self.add_type(cls.type, factory)
+
+    @classmethod
+    def get_factory_with_type(self, type: str):
+        return self.types[type]
+
+
+TagFactoriesType.add_cls(Tag, TagFactory)
 
 #to create any HTML tag from all Tags
 class AnyTagFactory:
     @classmethod
     def create(self, type:str, **kwarg):
-        tag_factory_type =  tag_factories[type]
+        tag_factory_type =  TagFactoriesType.get_factory_with_type(type)
         tag = tag_factory_type.create(**kwarg)
         return tag
 
@@ -104,9 +142,7 @@ class ParentTag(Tag, Parent):
     def __repr__(self) -> str:
         return self.__str__()
     
-parent_tag_type = ParentTag.type
-
-tags.append(parent_tag_type)
+TagType.add_cls(ParentTag)
 
 class ParentFactoryWith:
     type : str
@@ -157,51 +193,31 @@ class ParentTagFactory(TagFactory):
 
 
     
-tag_factories[parent_tag_type] = ParentTagFactory
+TagFactoriesType.add_cls(ParentTag, ParentTagFactory)
 
 class ChildTag(Tag, Child):
     type = 'child_tag'
 
-child_tag_type = ChildTag.type
-
-tags.append(child_tag_type)
+TagType.add_cls(ChildTag)
 
 class ChildTagFactory(TagFactory):
     res_class = ChildTag
     
-tag_factories[child_tag_type] = ChildTagFactory
+TagFactoriesType.add_cls(ChildTag, ChildTagFactory)
 
 class ParentAndChildTag(ParentTag, Child):
     type = 'parent_and_child_tag'
 
-parent_and_child_tag_type = ParentAndChildTag.type
-
-tags.append(parent_and_child_tag_type)
+TagType.add_cls(ParentAndChildTag)
 
 class ParentAndChildTagFactory(ParentTagFactory):
     res_class = ParentAndChildTag
 
-tag_factories[parent_and_child_tag_type] = ParentAndChildTagFactory
+TagFactoriesType.add_cls(ParentAndChildTag, ParentAndChildTagFactory)
 
-class Body(ParentTag):
-    type = 'body'
 
-body_type = Body.type
-tags.append(body_type)
-
-class BodyFactory(ParentTagFactory):
-    res_class = Body
-
-tag_factories[body_type] = BodyFactory
 
         
 
-# parent = AnyTagFactory.create(**{'type':'body', 'childs': [{'type': 'parent_and_child_tag', 'childs': [{'type': 'child_tag'},{'type': 'child_tag'}]}]})
-# parent
-# # body = AnyTagFactory.create(type= 'body', creation_type = 'with_child', childs = [Body(), Input()])
-# # print('........')
-# # print(body)
-# # print(body2)
-# print('....................')
+# parent = AnyTagFactory.create(**{'type':'parent_tag', 'childs': [{'type': 'parent_and_child_tag', 'childs': [{'type': 'child_tag'},{'type': 'child_tag'}]}]})
 # print(parent)
-# print('..........') 
