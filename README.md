@@ -1,6 +1,6 @@
 # hfm
 HI, every one.I started my new project hfm(helper for management).
-The goal of this project is to enable clear and quick communication between employees and to keep information organized
+The goal of this project is to enable clear and quick communication between employees and to keep information organized <br><br>
 
 the apps exists now:
   *user - customers information to authintificate ...
