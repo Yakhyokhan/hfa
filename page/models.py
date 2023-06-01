@@ -7,6 +7,15 @@ class Page(models.Model):
     html = models.JSONField()
     responsible_group = models.ForeignKey(ResponsibleGroup, on_delete=models.PROTECT)
     inputs = models.JSONField()
+    list = models.ManyToManyField('List')
+
+
+class List(models.Model):
+    name = models.CharField(max_length=50)
+
+class ListItem(models.Model):
+    name = models.CharField(max_length=50)
+    list = models.ForeignKey(List, on_delete=models.CASCADE)
 
 
 

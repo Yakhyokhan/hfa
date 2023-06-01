@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'adress',
     'company',
     'staff',
-    'responsible_group'
+    'responsible_group',
+    'page'
 ]
 
 MIDDLEWARE = [
