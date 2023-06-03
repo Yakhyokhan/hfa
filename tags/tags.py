@@ -15,12 +15,8 @@ class LoopHabitude(Habitude):
 class Body(ParentTag):
     type = 'body'
 
-TagType.add_cls(Body)
-
 class Div(ParentAndChildTag):
     type = 'div'
-
-TagType.add_cls(Div)
 
 class FieldSet(ParentAndChildTag):
     type = 'fieldset'
@@ -28,11 +24,8 @@ class FieldSet(ParentAndChildTag):
         super().__init__()
         self.legend = legend
 
-    def __str__(self) -> str:
-        return f'{self.cls_name()}(type:{self.type}, legend:\'{self.legend}\', childs:{self.childs}'
-
-TagType.add_cls(FieldSet)
-
+    def for_str(self) -> str:
+        return f'type:{self.type}, legend:\'{self.legend}\', childs:{self.childs}'
 
 class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
     type = 'list'
@@ -40,23 +33,90 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
         super().__init__()
         self.name = name
 
-    def __str__(self) -> str:
-        return f'{self.cls_name()}(type: {self.type}, name:{self.name}, childs: {self.childs})'
+    def for_str(self) -> str:
+        return f'type: {self.type}, name:{self.name}, childs: {self.childs}'
     
     def add_child(self, child: Child):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
         return super().add_child(child)
-    
-TagType.add_cls(ListTag)
 
 class Input(ChildTag):
     type = 'input'
+    value_type: object
     def __init__(self, name, value = '') -> None:
+        assert  type(value) == self.value_type, f'{value} is not {self.value_type.__name__}'
         super().__init__()
         self.name = name
         self.value = value
 
-    def __str__(self):
-        return f'{self.cls_name()}(type:{self.type}, name:{self.name}, value:\'{self.value}\')'
+    def for_str(self):
+        info = super().for_str()
+        return info +  f', name:\'{self.name}\', value:\'{self.value}\''
 
-TagType.add_cls(Input)
+class StringInput(Input):
+    type = 'input_string'
+    value_type = str
+    def __init__(self, name, value= '') -> None:
+        super().__init__(name, value)
+
+class IntegerInput(Input):
+    type = 'input_number'
+    value_type = int
+    def __init__(self, name, value= 0) -> None:
+        super().__init__(name, value)
+
+class FloatInput(Input):
+    type = 'input_float'
+    value_type = float
+    def __init__(self, name, value= 0.00) -> None:
+        super().__init__(name, value)
+
+class Checkbox(Input):
+    type = 'checkbox'
+    value_type = bool
+    def __init__(self, name, value= True) -> None:
+        super().__init__(name, value)
+
+radio_default_value = {
+    str: '',
+    int: 0,
+    float: 0.00,
+    bool: False
+    }
+
+class Radio(Input):
+    type = 'radio'
+    def __init__(self, name, value, value_type = str, radio_list = []) -> None:
+        self.value_type = value_type
+        self.check_radio_list(radio_list)
+        self.radio_list = radio_list
+        self.check_value(value)
+        super().__init__(name, value)
+
+    def check_any_value(self, value):
+        assert type(value) == self.value_type, f'{value} is not {self.value_type}'
+
+    def check_radio_list(self, radio_list):
+        for item in radio_list:
+            self.check_any_value(item)
+
+    def check_value(self, value):
+        assert value in self.radio_list or value == radio_default_value[self.value_type], \
+            f'{value} is not available in radio_list:{self.radio_list}'
+
+    def for_str(self):
+        info = super().for_str()
+        return info + f', radio_list:{self.radio_list}'
+
+TagType.add_clses([
+    Body,
+    Div,
+    FieldSet,
+    ListTag,
+    Input,
+    StringInput,
+    IntegerInput,
+    FloatInput,
+    Checkbox,
+    Radio
+])

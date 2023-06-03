@@ -14,7 +14,10 @@ class Tag:
         return self.__name__
     
     def __str__(self):
-        return f'{self.cls_name()}(type:{self.type})'
+        return f'{self.cls_name()}({self.for_str()})'
+    
+    def for_str(self):
+        return f'type:{self.type}'
     
     def __repr__(self) -> str:
         return self.__str__()
@@ -32,10 +35,22 @@ class Types:
     @classmethod
     def get_all_types(self):
         return self.types
+    
+    @classmethod
+    def get_type(self):
+        pass
+
+    @classmethod
+    def add_types(self, types: list[str]):
+            for type in types: self.add_type(type)
+
+    @classmethod
+    def add_clses(self, clses):
+        for cls in clses: self.add_cls(cls)
 
 # tag types
 class TagType(Types):
-    types = []
+    types: list = []
     @classmethod
     def add_type(self, type: str):
         self.types.append(type)    
@@ -47,6 +62,8 @@ class TagType(Types):
     @classmethod
     def get_type(self,i):
         return self.types[i]
+    
+            
     
 TagType.add_cls(Tag)
 class TagFactory:
@@ -76,12 +93,14 @@ class TagFactoriesType(Types):
         self.add_type(cls.res_class.type, cls)
 
     @classmethod
-    def get_factory_with_type(self, type: str) -> TagFactory:
+    def get_type(self, type: str) -> TagFactory:
         return self.types[type]
     
     @classmethod
     def get_factory_with_cls(self, cls: Tag) -> TagFactory:
         return self.types[cls.type]
+    
+        
 
 
 TagFactoriesType.add_cls(TagFactory)
@@ -90,7 +109,7 @@ TagFactoriesType.add_cls(TagFactory)
 class AnyTagFactory(TagFactory):
     @classmethod
     def create(self, type:str, **kwarg):
-        tag_factory_type =  TagFactoriesType.get_factory_with_type(type)
+        tag_factory_type =  TagFactoriesType.get_type(type)
         tag = tag_factory_type.create(**kwarg)
         return tag
     
@@ -139,11 +158,10 @@ class ParentTag(Tag, Parent):
         super().__init__()
 
         
-    def __str__(self) -> str:
-        return f'{self.cls_name()}(type:{self.type}, childs:{self.childs})'
+    def for_str(self) -> str:
+        info = super().for_str()
+        return info +  f', childs:{self.childs}'
 
-    def __repr__(self) -> str:
-        return self.__str__()
     
 TagType.add_cls(ParentTag)
 
