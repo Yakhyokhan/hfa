@@ -109,5 +109,75 @@ class ChildTagSerializer(TagSerializer):
 class ParentAndChildTagSerializer(ParentTagSerializer):
     factory = ParentAndChildTagFactory
 
+class BodySerializer(ParentTagSerializer):
+    factory = BodyFactory
 
+class DivSerializer(ParentAndChildTagSerializer):
+    factory = DivFactory
+
+class FieldsetSerializer(ParentAndChildTagSerializer):
+    factory = FieldSetFactory
+
+    def __get_info(self):
+        info = super().__get_info()
+        info['legend'] = self.obj.legend
+        return info
+
+class ListTagSerializer(ParentAndChildTagSerializer):
+    factory = ListTagFactory
+
+    def __get_info(self):
+        info = super().__get_info()
+        info['name'] = self.obj.name
+        return info
+    
+class InputSerializer(ChildTagSerializer):
+    factory = InputFactory
+
+    def __get_info(self):
+        info = super().__get_info()
+        info['name'] = self.obj.name
+        info['value'] = self.obj.value
+        return info
+    
+class InputWithListSerializer(InputSerializer):
+    factory = InputWithListFactory
+
+    def __get_info(self):
+        info = super().__get_info()
+        info['list_name'] = self.obj.list.name
+        return info
+
+class StringInputSerializer(InputWithListSerializer):
+    factory = StringInputFactory
+
+class IntegerInputSerializer(InputWithListSerializer):
+    factory = IntegerInputFactory
+
+class FloatInputSerializer(InputWithListSerializer):
+    factory = FloatInputFactory
+
+class CheckboxSerializer(InputSerializer):
+    factory = CheckboxFactory
+
+class RadioSerializer(InputSerializer):
+    factory = RadioFactory
+
+    def get_info(self):
+        info = super().get_info()
+        info['radio_list'] = self.obj.radio_list
+        info['value_type'] = RadioValueTypes.get_type(self.obj.value_type)
+        return info
+
+SerializerTypes.add_clses([
+    BodySerializer,
+    DivSerializer,
+    FieldsetSerializer,
+    ListTagSerializer,
+    StringInputSerializer,
+    IntegerInputSerializer,
+    FloatInputSerializer,
+    CheckboxSerializer,
+    RadioSerializer
+])
     
