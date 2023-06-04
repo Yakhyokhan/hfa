@@ -40,10 +40,10 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
         return super().add_child(child)
 
-class Input(ChildTag):
+class Input(ChildTag, FieldHabitude):
     type = 'input'
     value_type: object
-    def __init__(self, name, value = '') -> None:
+    def __init__(self, name, value) -> None:
         assert  type(value) == self.value_type, f'{value} is not {self.value_type.__name__}'
         super().__init__()
         self.name = name
@@ -52,24 +52,28 @@ class Input(ChildTag):
     def for_str(self):
         info = super().for_str()
         return info +  f', name:\'{self.name}\', value:\'{self.value}\''
+    
+class InputWithList(Input):
+    type = 'input_with_list'
+    def __init__(self, name, value='', list: List = None) -> None:
+        super().__init__(name, value)
+        self.list = list
 
-class StringInput(Input):
+    def for_str(self):
+        info =  super().for_str()
+        return info + ', list'
+
+class StringInput(InputWithList):
     type = 'input_string'
     value_type = str
-    def __init__(self, name, value= '') -> None:
-        super().__init__(name, value)
 
-class IntegerInput(Input):
+class IntegerInput(InputWithList):
     type = 'input_number'
     value_type = int
-    def __init__(self, name, value= 0) -> None:
-        super().__init__(name, value)
 
-class FloatInput(Input):
+class FloatInput(InputWithList):
     type = 'input_float'
     value_type = float
-    def __init__(self, name, value= 0.00) -> None:
-        super().__init__(name, value)
 
 class Checkbox(Input):
     type = 'checkbox'

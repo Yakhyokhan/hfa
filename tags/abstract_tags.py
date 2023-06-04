@@ -2,8 +2,6 @@
 this party is to detect HTML tags
 '''
 
-
-
 class Tag:
     '''
     base HTML tag class
@@ -62,10 +60,7 @@ class TagType(Types):
     @classmethod
     def get_type(self,i):
         return self.types[i]
-    
-            
-    
-TagType.add_cls(Tag)
+
 class TagFactory:
     '''
     parent class to create HTML tag classes
@@ -75,13 +70,7 @@ class TagFactory:
     def create(self, **kwarg):
         return self.res_class(**kwarg)
     
-    @classmethod
-    def get_info(self, tag: res_class):
-        return {'type': tag.type}
-
-
 # to look for tag factories with type of tag
-
 class TagFactoriesType(Types):
     types = {}
     @classmethod
@@ -99,11 +88,6 @@ class TagFactoriesType(Types):
     @classmethod
     def get_factory_with_cls(self, cls: Tag) -> TagFactory:
         return self.types[cls.type]
-    
-        
-
-
-TagFactoriesType.add_cls(TagFactory)
 
 #to create any HTML tag from all Tags
 class AnyTagFactory(TagFactory):
@@ -118,7 +102,13 @@ class AnyTagFactory(TagFactory):
         factory = TagFactoriesType.get_factory_with_cls(tag)
         return factory.get_info(tag)
 
-
+class ManyTagFactory:
+    def create(list:list[dict]):
+        tags = []
+        for child in list:
+            type = child.pop('type')
+            tags.append(AnyTagFactory.create(type = type, **child))
+        return tags
 
 class Ability:
     '''
@@ -150,7 +140,6 @@ class Parent(Ability):
         
     def delete_child(self, child: Child = 0):
         self.childs.remove(child)
-    
 
 class ParentTag(Tag, Parent):
     type = 'parent_tag'
@@ -162,29 +151,22 @@ class ParentTag(Tag, Parent):
         info = super().for_str()
         return info +  f', childs:{self.childs}'
 
-    
-TagType.add_cls(ParentTag)
-
 class ParentFactoryWith:
     type : str
     @classmethod
     def create(self,parent:ParentTag, childs = []):
         pass
 
-parent_tag_factory_type = {}
+parent_tag_factory_type: dict[str, ParentFactoryWith] = {}
 
 class ParentFactoryWithChildClass(ParentFactoryWith):
     type = 'with_child'
     @classmethod
     def create(self,parent:ParentTag, childs = []):
-        b = parent
-        self.set_childs_with_child_class(b, childs)
-        return  b
-    
-    @staticmethod
-    def set_childs_with_child_class(parent:Parent, childs: list[Child] = [] ):
         for child in childs:
             parent.add_child(child)
+        return  parent
+        
     
 parent_tag_factory_type[ParentFactoryWithChildClass.type] = ParentFactoryWithChildClass
     
@@ -193,14 +175,9 @@ class ParentFactoryWithDict(ParentFactoryWith):
     @classmethod
     def create(self,parent:ParentTag, childs: list[dict] = []):
         b = parent
-        self.set_childs_with_dict(b, childs)
-        return b
+        childs = ManyTagFactory.create(childs)
+        return ParentFactoryWithChildClass.create(b, childs)
     
-    @staticmethod
-    def set_childs_with_dict(parent:Parent , childs:list[dict]):
-        for child in childs:
-            type = child.pop('type')
-            parent.add_child(AnyTagFactory.create(type = type, **child))
     
 parent_tag_factory_type[ParentFactoryWithDict.type] = ParentFactoryWithDict
 
@@ -211,46 +188,19 @@ class ParentTagFactory(TagFactory):
         res_obj = super().create(**kwarg)
         creation_type = parent_tag_factory_type[creation_type]
         return creation_type.create(res_obj, childs)
-    
-    @classmethod
-    def get_info(self, tag: res_class):
-        info = super().get_info(tag)
-        childs_info = self.get_childs_info(tag.childs)
-        info.update(childs_info)
-        return info
-    
-    @classmethod
-    def get_childs_info(self, childs: list[Tag]):
-        childs_info = []
-        for child in childs:
-            factory = TagFactoriesType.get_factory_with_cls(child)
-            info = factory.get_info(child)
-            childs_info.append(info)
-        return {'childs': childs_info}
-
-
-    
-TagFactoriesType.add_cls(ParentTagFactory)
 
 class ChildTag(Tag, Child):
     type = 'child_tag'
 
-TagType.add_cls(ChildTag)
-
 class ChildTagFactory(TagFactory):
     res_class = ChildTag
-    
-TagFactoriesType.add_cls(ChildTagFactory)
 
 class ParentAndChildTag(ParentTag, Child):
     type = 'parent_and_child_tag'
 
-TagType.add_cls(ParentAndChildTag)
-
 class ParentAndChildTagFactory(ParentTagFactory):
     res_class = ParentAndChildTag
 
-TagFactoriesType.add_cls(ParentAndChildTagFactory)
 
 
 

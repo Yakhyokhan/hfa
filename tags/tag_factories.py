@@ -1,6 +1,6 @@
 from .abstract_tags import TagFactoriesType, AnyTagFactory, Types,\
     ParentTagFactory, ChildTagFactory, ParentAndChildTagFactory
-from .tags import Body, Div, FieldSet, ListTag, Input, StringInput, IntegerInput, FloatInput, Checkbox, radio_default_value, Radio
+from .tags import radio_default_value, Body, Div, FieldSet, ListTag, Input, InputWithList, StringInput, IntegerInput, FloatInput, Checkbox, Radio
 class BodyFactory(ParentTagFactory):
     res_class = Body
 
@@ -10,38 +10,22 @@ class DivFactory(ParentAndChildTagFactory):
 class FieldSetFactory(ParentAndChildTagFactory):
     res_class = FieldSet
 
-    @classmethod
-    def get_info(self, tag:res_class):
-        info = super().get_info(tag)
-        info['legend'] = tag.legend
-        return info
-
 class ListTagFactory(ParentAndChildTagFactory):
     res_class = ListTag
 
-    @classmethod
-    def get_info(self, tag: res_class):
-        info = super().get_info(tag)
-        info['name'] = tag.name
-        return info
-
 class InputFactory(ChildTagFactory):
     res_class = Input
+    
+class InputWithListFactory(InputFactory):
+    res_class = InputWithList
 
-    @classmethod
-    def get_info(self, tag: res_class):
-        info = super().get_info(tag)
-        info['name'] = tag.name
-        info['value'] = tag.value
-        return info
-
-class StringInputFactory(InputFactory):
+class StringInputFactory(InputWithListFactory):
     res_class = StringInput
 
-class IntegerInputFactory(InputFactory):
+class IntegerInputFactory(InputWithListFactory):
     res_class = IntegerInput
 
-class FloatInputFactory(InputFactory):
+class FloatInputFactory(InputWithListFactory):
     res_class = FloatInput
 
 class CheckboxFactory(InputFactory):
@@ -90,13 +74,6 @@ class RadioFactory(InputFactory):
         kwarg['value_type'] = value_type
         kwarg['value'] = value
         return super().create(**kwarg)
-
-    @classmethod
-    def get_info(self, tag: res_class):
-        info = super().get_info(tag)
-        info['radio_list'] = tag.radio_list
-        info['value_type'] = RadioValueTypes.get_type(tag.value_type)
-        return info
     
 
 TagFactoriesType.add_clses([
