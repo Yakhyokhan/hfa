@@ -72,5 +72,15 @@ class ChildFinder(TagFieldFinder):
 class ParentAndCHildTagFinder(ParentFinder):
     tag = ParentAndChildTag
 
-
+TagFildFinderTypes.add_clses_with_tag([
+    [Body, ParentFinder],
+    [Div, ParentAndChildTag],
+    [FieldSet, ParentAndChildTag],
+    [ListTag, ParentAndChildTag],
+    [StringInput, ChildFinder],
+    [IntegerInput, ChildFinder],
+    [FloatInput, ChildFinder],
+    [Checkbox, ChildFinder],
+    [Radio, ChildFinder],
+])
 
