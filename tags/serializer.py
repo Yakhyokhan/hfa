@@ -1,6 +1,5 @@
-from .abstract_tags import  Types,TagFactory, ParentTagFactory, Tag, ChildTagFactory, ParentAndChildTagFactory
+from .abstract_tags import  Types,TagFactory, Tag
 from .tag_factories import *
-from .tags import FieldHabitude
 
 class TagSerializer:
     factory = TagFactory
@@ -43,10 +42,6 @@ class SerializerTypes(Types):
     @classmethod
     def get_type_with_cls(self, cls: Tag):
         return self.get_type(cls.type)
-
-    @classmethod
-    def add_types(self, types: list[str]):
-            for type in types: self.add_type(type)
 
     @classmethod
     def add_clses(self, clses):
@@ -102,7 +97,6 @@ class ParentTagSerializer(TagSerializer):
         info['childs'] = childs_info
         return info
 
-    
 class ChildTagSerializer(TagSerializer):
     factory = ChildTagFactory
 

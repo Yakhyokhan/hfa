@@ -38,9 +38,6 @@ class Types:
     def get_type(self):
         pass
 
-    @classmethod
-    def add_types(self, types: list[str]):
-            for type in types: self.add_type(type)
 
     @classmethod
     def add_clses(self, clses):
@@ -137,9 +134,16 @@ class Parent(Ability):
     def add_child(self, child:Child):
         assert self.is_child(child), str(child) + 'is not Child class'
         self.childs.append(child)
+
+    def add_childs(self, childs):
+        for child in childs:
+            self.add_child(child)
         
     def delete_child(self, child: Child = 0):
         self.childs.remove(child)
+    
+    def empty_childs(self):
+        self.childs = []
 
 class ParentTag(Tag, Parent):
     type = 'parent_tag'
@@ -163,8 +167,6 @@ class ParentFactoryWithChildClass(ParentFactoryWith):
     type = 'with_child'
     @classmethod
     def create(self,parent:ParentTag, childs = []):
-        for child in childs:
-            parent.add_child(child)
         return  parent
         
     
@@ -201,6 +203,15 @@ class ParentAndChildTag(ParentTag, Child):
 class ParentAndChildTagFactory(ParentTagFactory):
     res_class = ParentAndChildTag
 
+class Habitude:
+    pass
+
+class FieldHabitude(Habitude):
+    def __init__(self) -> None:
+        self.name: str
+
+class LoopHabitude(Habitude):
+    pass
 
 
 

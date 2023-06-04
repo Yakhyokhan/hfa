@@ -1,16 +1,7 @@
-from tags.abstract_tags import Child
-from .abstract_tags import TagType, ParentTag, ChildTag,ParentAndChildTag
+from .abstract_tags import TagType, ParentTag, ChildTag,ParentAndChildTag, FieldHabitude, LoopHabitude
 from page.models import List
 
-class Habitude:
-    pass
 
-class FieldHabitude(Habitude):
-    def __init__(self) -> None:
-        self.name: str
-
-class LoopHabitude(Habitude):
-    pass
 
 class Body(ParentTag):
     type = 'body'
@@ -36,7 +27,7 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
     def for_str(self) -> str:
         return f'type: {self.type}, name:{self.name}, childs: {self.childs}'
     
-    def add_child(self, child: Child):
+    def add_child(self, child):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
         return super().add_child(child)
 
