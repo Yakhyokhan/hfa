@@ -1,11 +1,22 @@
 from .abstract_tags import Tag, Types, AnyTagFactory
 from .tags import *
 
-class TagFieldFinder:
+class TagNotFieldFinder:
     tag = Tag
 
     @classmethod
     def find(self, obj:tag):
+        return None
+    
+class TagFieldFinder(TagNotFieldFinder):
+    tag = Tag
+
+    @classmethod
+    def find(self, obj: tag):
+        return self.is_field(obj)
+        
+    @classmethod
+    def is_field(self, obj):
         if issubclass(obj.__class__, FieldHabitude):
             return obj
 
@@ -47,40 +58,49 @@ class ManyFieldsFinder:
 
     @classmethod
     def find(self, objs = list[Tag]):
-        list = []
+        field_list = []
         for obj in objs:
-            field = AnyFieldFinder.find(obj)
-            if field != None:
-                list.append(field)
-        return list
+            fields = AnyFieldFinder.find(obj)
+            if type(fields) == list:
+                for field in fields: field_list.append(field)
+                continue
+            if fields != None:
+                field_list.append(fields)
+        return field_list
     
-class ParentFinder(TagFieldFinder):
+class ParentNotFieldFinder(TagFieldFinder):
     tag = ParentTag
 
     @classmethod
     def find(self, obj: tag):
-        childs = ManyFieldsFinder.find(obj.childs)
-        if issubclass(obj.__class__, FieldHabitude): 
-            new_obj = AnyTagFactory.create(type = obj.type)
+        return ManyFieldsFinder.find(obj.childs)
+    
+class ParentFieldFinder(ParentNotFieldFinder, TagFieldFinder):
+    tag = ParentTag
+
+    @classmethod
+    def find(self, obj: tag):
+        childs =  super().find(obj)
+        if self.is_field(obj): 
+            new_obj = AnyTagFactory.create(type = obj.type, name = obj.name)
+            print(childs)
             new_obj.add_childs(childs)
             return new_obj
         return childs
     
-class ChildFinder(TagFieldFinder):
-    tag = ChildTag
 
-class ParentAndCHildTagFinder(ParentFinder):
+
     tag = ParentAndChildTag
 
 TagFildFinderTypes.add_clses_with_tag([
-    [Body, ParentFinder],
-    [Div, ParentAndChildTag],
-    [FieldSet, ParentAndChildTag],
-    [ListTag, ParentAndChildTag],
-    [StringInput, ChildFinder],
-    [IntegerInput, ChildFinder],
-    [FloatInput, ChildFinder],
-    [Checkbox, ChildFinder],
-    [Radio, ChildFinder],
+    [Body, ParentNotFieldFinder],
+    [Div, ParentNotFieldFinder],
+    [FieldSet, ParentNotFieldFinder],
+    [ListTag, ParentFieldFinder],
+    [StringInput, TagFieldFinder],
+    [IntegerInput, TagFieldFinder],
+    [FloatInput, TagFieldFinder],
+    [Checkbox, TagFieldFinder],
+    [Radio, TagFieldFinder],
 ])
 

@@ -20,9 +20,12 @@ class FieldSet(ParentAndChildTag):
 
 class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
     type = 'list'
-    def __init__(self, name:str):
+    def __init__(self, name:str, label = None):
         super().__init__()
         self.name = name
+        if not label:
+            label = name
+        self.label = label
 
     def for_str(self) -> str:
         return f'type: {self.type}, name:{self.name}, childs: {self.childs}'
@@ -34,11 +37,14 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
 class Input(ChildTag, FieldHabitude):
     type = 'input'
     value_type: object
-    def __init__(self, name, value) -> None:
+    def __init__(self, name, value, label = None) -> None:
         assert  type(value) == self.value_type, f'{value} is not {self.value_type.__name__}'
         super().__init__()
         self.name = name
         self.value = value
+        if not label:
+            label = name
+        self.label = label
 
     def for_str(self):
         info = super().for_str()
@@ -47,12 +53,13 @@ class Input(ChildTag, FieldHabitude):
 class InputWithList(Input):
     type = 'input_with_list'
     def __init__(self, name, value='', list: List = None) -> None:
+        assert list == None or isinstance(list, List), f'{list} is not List model'
         super().__init__(name, value)
         self.list = list
 
     def for_str(self):
         info =  super().for_str()
-        return info + ', list'
+        return info + f', list: {self.list}'
 
 class StringInput(InputWithList):
     type = 'input_string'
@@ -68,9 +75,10 @@ class FloatInput(InputWithList):
 
 class Checkbox(Input):
     type = 'checkbox'
-    value_type = bool
-    def __init__(self, name, value= True) -> None:
-        super().__init__(name, value)
+    value_type = str
+    def __init__(self, name, value= True, is_checked = False, label = None) -> None:
+        super().__init__(name, value, label)
+        self.is_checked = is_checked
 
 radio_default_value = {
     str: '',
@@ -81,12 +89,12 @@ radio_default_value = {
 
 class Radio(Input):
     type = 'radio'
-    def __init__(self, name, value, value_type = str, radio_list = []) -> None:
+    def __init__(self, name, value, value_type = str, radio_list = [], label = None) -> None:
         self.value_type = value_type
         self.check_radio_list(radio_list)
         self.radio_list = radio_list
         self.check_value(value)
-        super().__init__(name, value)
+        super().__init__(name, value, label)
 
     def check_any_value(self, value):
         assert type(value) == self.value_type, f'{value} is not {self.value_type}'

@@ -42,17 +42,23 @@ class Types:
     @classmethod
     def add_clses(self, clses):
         for cls in clses: self.add_cls(cls)
+    
+    @classmethod
+    def add_clses_with_cls(self, clses: list[list[Tag, Tag]]):
+        for cls in clses: self.add_type(cls[0].type, cls[1])
 
 # tag types
 class TagType(Types):
-    types: list = []
+    types: list = {}
     @classmethod
-    def add_type(self, type: str):
-        self.types.append(type)    
+    def add_type(self, type: str, tag):
+        self.types[type] = tag
 
     @classmethod
     def add_cls(self, cls: Tag):
-        self.add_type(cls.type)
+        self.add_type(cls.type, cls)
+
+    
 
     @classmethod
     def get_type(self,i):
@@ -64,8 +70,9 @@ class TagFactory:
     '''
     res_class = Tag
     @classmethod
-    def create(self, **kwarg):
-        return self.res_class(**kwarg)
+    def create(self, type, **kwarg):
+        cls = TagType.get_type(type)
+        return cls(**kwarg)
     
 # to look for tag factories with type of tag
 class TagFactoriesType(Types):
@@ -89,7 +96,8 @@ class TagFactoriesType(Types):
 #to create any HTML tag from all Tags
 class AnyTagFactory(TagFactory):
     @classmethod
-    def create(self, type:str, **kwarg):
+    def create(self, **kwarg):
+        type = kwarg['type']
         tag_factory_type =  TagFactoriesType.get_type(type)
         tag = tag_factory_type.create(**kwarg)
         return tag
@@ -100,7 +108,9 @@ class AnyTagFactory(TagFactory):
         return factory.get_info(tag)
 
 class ManyTagFactory:
-    def create(list:list[dict]):
+
+    @classmethod
+    def create(self, list:list[dict]):
         tags = []
         for child in list:
             type = child.pop('type')
@@ -158,7 +168,7 @@ class ParentTag(Tag, Parent):
 class ParentFactoryWith:
     type : str
     @classmethod
-    def create(self,parent:ParentTag, childs = []):
+    def add_childs(self,parent:ParentTag, childs = []):
         pass
 
 parent_tag_factory_type: dict[str, ParentFactoryWith] = {}
@@ -166,8 +176,8 @@ parent_tag_factory_type: dict[str, ParentFactoryWith] = {}
 class ParentFactoryWithChildClass(ParentFactoryWith):
     type = 'with_child'
     @classmethod
-    def create(self,parent:ParentTag, childs = []):
-        return  parent
+    def add_childs(self, parent:ParentTag, childs = []):
+        parent.add_childs(childs)
         
     
 parent_tag_factory_type[ParentFactoryWithChildClass.type] = ParentFactoryWithChildClass
@@ -175,10 +185,10 @@ parent_tag_factory_type[ParentFactoryWithChildClass.type] = ParentFactoryWithChi
 class ParentFactoryWithDict(ParentFactoryWith):
     type = 'with_dict'
     @classmethod
-    def create(self,parent:ParentTag, childs: list[dict] = []):
+    def add_childs(self, parent:ParentTag, childs: list[dict] = []):
         b = parent
         childs = ManyTagFactory.create(childs)
-        return ParentFactoryWithChildClass.create(b, childs)
+        ParentFactoryWithChildClass.add_childs(b, childs)
     
     
 parent_tag_factory_type[ParentFactoryWithDict.type] = ParentFactoryWithDict
@@ -186,10 +196,11 @@ parent_tag_factory_type[ParentFactoryWithDict.type] = ParentFactoryWithDict
 class ParentTagFactory(TagFactory):
     res_class = ParentTag
     @classmethod
-    def create(self, creation_type = 'with_dict', childs:list[dict] = [], **kwarg):
+    def create(self, *, creation_type = 'with_dict', childs:list[dict] = [], **kwarg):
         res_obj = super().create(**kwarg)
         creation_type = parent_tag_factory_type[creation_type]
-        return creation_type.create(res_obj, childs)
+        creation_type.add_childs(res_obj, childs)
+        return res_obj
 
 class ChildTag(Tag, Child):
     type = 'child_tag'
@@ -209,6 +220,7 @@ class Habitude:
 class FieldHabitude(Habitude):
     def __init__(self) -> None:
         self.name: str
+        self.label: str
 
 class LoopHabitude(Habitude):
     pass

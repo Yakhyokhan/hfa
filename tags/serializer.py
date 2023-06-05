@@ -1,24 +1,24 @@
-from .abstract_tags import  Types,TagFactory, Tag
-from .tag_factories import *
+from .abstract_tags import  Types, Tag, AnyTagFactory
+from .tags import *
+from .tag_factories import RadioValueTypes
 
 class TagSerializer:
-    factory = TagFactory
-    tag = factory.res_class
+    tag = Tag
     def __init__(self, obj:tag):
-        assert type(obj) == self.tag, f'{obj} is not {self.tag} class'
+        assert issubclass(obj.__class__, self.tag), f'{obj} is not {self.tag} class'
         self.obj = obj
-        self.data = self.__get_info()
+        self.data = self.get_info()
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}({self.data})'
 
-    def __get_info(self):
+    def get_info(self):
         return {'type': self.obj.type}
     
     
     @classmethod
     def create(self, kwarg: dict):
-        tag = self.factory.create(**kwarg)
+        tag = AnyTagFactory.create(**kwarg)
         return self(tag)
     
 class SerializerTypes(Types):
@@ -46,6 +46,10 @@ class SerializerTypes(Types):
     @classmethod
     def add_clses(self, clses):
         for cls in clses: self.add_cls(cls)
+
+    @classmethod
+    def add_clses_with_cls(self, clses: list[list[Tag, TagSerializer]]):
+        for cls in clses: self.add_type(cls[0].type, cls[1])
     
 class AnyTagSerializer:
 
@@ -55,29 +59,25 @@ class AnyTagSerializer:
         serializer = SerializerTypes.get_type(type)
         return serializer.create(kwarg)
     
+    @classmethod
     def create_with_obj(self, obj: Tag) -> TagSerializer:
-        serializer = SerializerTypes.get_type(obj)
+        serializer = SerializerTypes.get_type(obj.type)
         return serializer(obj)
     
 class ManyTagSerializer:
 
     def __init__(self) -> None:
         self.obj_list = []
-        self.data = self.__get_info()
-
-    def __get_info(self):
-        list = []
-        for obj in self.obj_list:
-            serializer = AnyTagSerializer.create_with_obj(obj)
-            list.append(serializer.data)
-        return list
+        self.data = []
 
     def add(self, obj:Tag):
-        assert isinstance(obj.__class__, Tag), f'{obj} is not Tag class'
+        assert issubclass(obj.__class__, Tag), f'{obj} is not Tag class'
         self.obj_list.append(obj)
+        serializer = AnyTagSerializer.create_with_obj(obj)
+        self.data.append(serializer.data)
 
     def add_many(self, list: list[Tag]):
-        for tag in list: self.obj_list.append(tag)
+        for tag in list: self.add(tag)
 
     @classmethod
     def create(self, list: list[dict]):
@@ -87,10 +87,10 @@ class ManyTagSerializer:
             ins.add(obj)
 
 class ParentTagSerializer(TagSerializer):
-    factory = ParentTagFactory
+    tag = ParentTag
 
-    def __get_info(self):
-        info = super().__get_info()
+    def get_info(self):
+        info = super().get_info()
         serializer = ManyTagSerializer()
         serializer.add_many(self.obj.childs)
         childs_info = serializer.data
@@ -98,64 +98,58 @@ class ParentTagSerializer(TagSerializer):
         return info
 
 class ChildTagSerializer(TagSerializer):
-    factory = ChildTagFactory
+    tag = ChildTag
 
 class ParentAndChildTagSerializer(ParentTagSerializer):
-    factory = ParentAndChildTagFactory
-
-class BodySerializer(ParentTagSerializer):
-    factory = BodyFactory
-
-class DivSerializer(ParentAndChildTagSerializer):
-    factory = DivFactory
+    tag = ParentAndChildTag
 
 class FieldsetSerializer(ParentAndChildTagSerializer):
-    factory = FieldSetFactory
+    tag = FieldSet
 
-    def __get_info(self):
-        info = super().__get_info()
+    def get_info(self):
+        info = super().get_info()
         info['legend'] = self.obj.legend
         return info
 
 class ListTagSerializer(ParentAndChildTagSerializer):
-    factory = ListTagFactory
+    tag = ListTag
 
-    def __get_info(self):
-        info = super().__get_info()
+    def get_info(self):
+        info = super().get_info()
         info['name'] = self.obj.name
         return info
     
 class InputSerializer(ChildTagSerializer):
-    factory = InputFactory
+    tag = Input
 
-    def __get_info(self):
-        info = super().__get_info()
+    def get_info(self):
+        info = super().get_info()
         info['name'] = self.obj.name
         info['value'] = self.obj.value
+        info['label'] = self.obj.label
         return info
     
 class InputWithListSerializer(InputSerializer):
-    factory = InputWithListFactory
+    tag = InputWithList
 
-    def __get_info(self):
-        info = super().__get_info()
-        info['list_name'] = self.obj.list.name
+    def get_info(self):
+        info = super().get_info()
+        info['list_name'] = None
+        list = self.obj.list
+        if list:
+            info['list_name'] = list.name
         return info
 
-class StringInputSerializer(InputWithListSerializer):
-    factory = StringInputFactory
-
-class IntegerInputSerializer(InputWithListSerializer):
-    factory = IntegerInputFactory
-
-class FloatInputSerializer(InputWithListSerializer):
-    factory = FloatInputFactory
-
 class CheckboxSerializer(InputSerializer):
-    factory = CheckboxFactory
+    tag = Checkbox
+
+    def get_info(self):
+        info =  super().get_info()
+        info['is_checked'] = self.obj.is_checked
+        return info
 
 class RadioSerializer(InputSerializer):
-    factory = RadioFactory
+    tag = Radio
 
     def get_info(self):
         info = super().get_info()
@@ -164,14 +158,16 @@ class RadioSerializer(InputSerializer):
         return info
 
 SerializerTypes.add_clses([
-    BodySerializer,
-    DivSerializer,
     FieldsetSerializer,
     ListTagSerializer,
-    StringInputSerializer,
-    IntegerInputSerializer,
-    FloatInputSerializer,
-    CheckboxSerializer,
-    RadioSerializer
+    RadioSerializer,
+    CheckboxSerializer
+])
+SerializerTypes.add_clses_with_cls([
+    [Body, ParentTagSerializer],
+    [Div, ParentAndChildTagSerializer],
+    [StringInput, InputWithListSerializer],
+    [FloatInput, InputWithListSerializer],
+    [IntegerInput, InputWithListSerializer],
 ])
     

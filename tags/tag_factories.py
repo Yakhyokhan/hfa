@@ -1,35 +1,18 @@
-from .abstract_tags import TagFactoriesType, AnyTagFactory, Types,\
-    ParentTagFactory, ChildTagFactory, ParentAndChildTagFactory
-from .tags import radio_default_value, Body, Div, FieldSet, ListTag, Input, InputWithList, StringInput, IntegerInput, FloatInput, Checkbox, Radio
-class BodyFactory(ParentTagFactory):
-    res_class = Body
-
-class DivFactory(ParentAndChildTagFactory):
-    res_class = Div
-
-class FieldSetFactory(ParentAndChildTagFactory):
-    res_class = FieldSet
-
-class ListTagFactory(ParentAndChildTagFactory):
-    res_class = ListTag
+from tags.abstract_tags import Tag
+from .abstract_tags import TagFactoriesType, ParentTagFactory, ChildTagFactory, ParentAndChildTagFactory
+from .tags import *
 
 class InputFactory(ChildTagFactory):
     res_class = Input
-    
+
 class InputWithListFactory(InputFactory):
     res_class = InputWithList
 
-class StringInputFactory(InputWithListFactory):
-    res_class = StringInput
-
-class IntegerInputFactory(InputWithListFactory):
-    res_class = IntegerInput
-
-class FloatInputFactory(InputWithListFactory):
-    res_class = FloatInput
-
-class CheckboxFactory(InputFactory):
-    res_class = Checkbox
+    @classmethod
+    def create(self, company_name = '', user_id = None,type=..., list = None, list_name = '', **kwarg):
+        if list_name:
+            list = List.objects.get(name = list_name, company_name = company_name, company_user_id = user_id)
+        return super().create(type, list, **kwarg)
 
 class RadioValueTypes:
 
@@ -60,7 +43,6 @@ class RadioValueTypes:
     def get_type(self, cls):
         return self.cls_type[cls]
 
-
 class RadioFactory(InputFactory):
     res_class = Radio
 
@@ -75,16 +57,15 @@ class RadioFactory(InputFactory):
         kwarg['value'] = value
         return super().create(**kwarg)
     
+TagFactoriesType.add_cls(RadioFactory)
+TagFactoriesType.add_clses_with_cls([
+    [Body, ParentTagFactory],
+    [Div, ParentAndChildTagFactory],
+    [FieldSet, ParentAndChildTagFactory],
+    [ListTag, ParentAndChildTagFactory],
+    [StringInput, InputFactory],
+    [IntegerInput, InputFactory],
+    [FloatInput, InputFactory],
+    [Checkbox, InputFactory],
 
-TagFactoriesType.add_clses([
-    BodyFactory,
-    DivFactory,
-    FieldSetFactory,
-    ListTagFactory,
-    InputFactory,
-    StringInputFactory,
-    IntegerInputFactory,
-    FloatInputFactory,
-    CheckboxFactory,
-    RadioFactory
-    ])
+])
