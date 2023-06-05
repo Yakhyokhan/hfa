@@ -85,6 +85,7 @@ class ManyTagSerializer:
         for dict in list:
             obj = AnyTagFactory.create(dict)
             ins.add(obj)
+        return ins
 
 class ParentTagSerializer(TagSerializer):
     tag = ParentTag
