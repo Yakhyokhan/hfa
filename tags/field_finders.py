@@ -1,5 +1,6 @@
-from .abstract_tags import Tag, Types, AnyTagFactory
+from .abstract_tags import Tag, Types, AnyTagFactory, Parent, Child
 from .tags import *
+from copy import copy
 
 class TagNotFieldFinder:
     tag = Tag
@@ -76,21 +77,23 @@ class ParentNotFieldFinder(TagFieldFinder):
         return ManyFieldsFinder.find(obj.childs)
     
 class ParentFieldFinder(ParentNotFieldFinder, TagFieldFinder):
-    tag = ParentTag
+    tag = Parent
 
     @classmethod
     def find(self, obj: tag):
         childs =  super().find(obj)
+
+        childs = [copy(child) for child in childs]
         if self.is_field(obj): 
-            new_obj = AnyTagFactory.create(type = obj.type, name = obj.name)
-            print(childs)
+            new_obj = copy(obj)
+            if issubclass(new_obj.__class__, Child):
+                new_obj.parent = None
+                new_obj.root = True
+                new_obj.names = []
+            new_obj.childs = []
             new_obj.add_childs(childs)
             return new_obj
         return childs
-    
-
-
-    tag = ParentAndChildTag
 
 TagFildFinderTypes.add_clses_with_tag([
     [Body, ParentNotFieldFinder],

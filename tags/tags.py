@@ -11,8 +11,8 @@ class Div(ParentAndChildTag):
 
 class FieldSet(ParentAndChildTag):
     type = 'fieldset'
-    def __init__(self, legend = ''):
-        super().__init__()
+    def __init__(self, parent = None, legend = ''):
+        super().__init__(parent)
         self.legend = legend
 
     def for_str(self) -> str:
@@ -20,15 +20,17 @@ class FieldSet(ParentAndChildTag):
 
 class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
     type = 'list'
-    def __init__(self, name:str, label = None):
-        super().__init__()
+    def __init__(self, name:str, parent = None, label = None):
         self.name = name
+        super().__init__(parent)
+        if not parent:
+            self.names = [self.name]
         if not label:
             label = name
         self.label = label
 
     def for_str(self) -> str:
-        return f'type: {self.type}, name:{self.name}, childs: {self.childs}'
+        return f'type: {self.type}, parent: {self.parent}, name:{self.name}, childs: {self.childs}'
     
     def add_child(self, child):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
@@ -37,10 +39,10 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
 class Input(ChildTag, FieldHabitude):
     type = 'input'
     value_type: object
-    def __init__(self, name, value, label = None) -> None:
+    def __init__(self, name, value, parent = None, label = None) -> None:
         assert  type(value) == self.value_type, f'{value} is not {self.value_type.__name__}'
-        super().__init__()
         self.name = name
+        super().__init__(parent)
         self.value = value
         if not label:
             label = name
@@ -52,9 +54,9 @@ class Input(ChildTag, FieldHabitude):
     
 class InputWithList(Input):
     type = 'input_with_list'
-    def __init__(self, name, value='', list: List = None) -> None:
+    def __init__(self, name, parent = None, label = None, value='', list: List = None) -> None:
         assert list == None or isinstance(list, List), f'{list} is not List model'
-        super().__init__(name, value)
+        super().__init__(name, value, parent, label)
         self.list = list
 
     def for_str(self):
@@ -76,8 +78,8 @@ class FloatInput(InputWithList):
 class Checkbox(Input):
     type = 'checkbox'
     value_type = str
-    def __init__(self, name, value= True, is_checked = False, label = None) -> None:
-        super().__init__(name, value, label)
+    def __init__(self, name, parent = None, value= True, is_checked = False, label = None) -> None:
+        super().__init__(name, value, parent, label)
         self.is_checked = is_checked
 
 radio_default_value = {
@@ -89,12 +91,12 @@ radio_default_value = {
 
 class Radio(Input):
     type = 'radio'
-    def __init__(self, name, value, value_type = str, radio_list = [], label = None) -> None:
+    def __init__(self, name, value, parent = None, value_type = str, radio_list = [], label = None) -> None:
         self.value_type = value_type
         self.check_radio_list(radio_list)
         self.radio_list = radio_list
         self.check_value(value)
-        super().__init__(name, value, label)
+        super().__init__(name, value, parent, label)
 
     def check_any_value(self, value):
         assert type(value) == self.value_type, f'{value} is not {self.value_type}'

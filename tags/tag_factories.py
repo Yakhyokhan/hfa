@@ -9,9 +9,7 @@ class InputWithListFactory(InputFactory):
     res_class = InputWithList
 
     @classmethod
-    def create(self, company_name = '', user_id = None,type=..., list = None, list_name = '', **kwarg):
-        if list_name:
-            list = List.objects.get(name = list_name, company_name = company_name, company_user_id = user_id)
+    def create(self,type=..., list = None, **kwarg):
         return super().create(type, list, **kwarg)
 
 class RadioValueTypes:

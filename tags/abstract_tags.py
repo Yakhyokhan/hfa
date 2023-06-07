@@ -124,12 +124,22 @@ class Ability:
     pass
 
 class Child(Ability):
-    pass
+    def __init__(self, parent = None) -> None:
+        self.check_parent(parent)
+
+    def check_parent(self, parent):
+        if parent:
+            parent.add_child(self)
+            return
+        self.parent = None
 
 class Parent(Ability):
-    def __init__(self) -> None:
+    def __init__(self, root = False) -> None:
         self.not_child_err = 'have a variable which not be from child class '
         self.childs: list[Tag] = []
+        self.root = root
+        if root:
+            self.names = []
     def __str__(self) -> str:
         return f'Parent({self.childs})'
 
@@ -140,10 +150,21 @@ class Parent(Ability):
         if not issubclass(child.__class__, Child):
             return False
         return True
+
+    def is_name_not_exist(self, name):
+        return True
     
     def add_child(self, child:Child):
         assert self.is_child(child), str(child) + 'is not Child class'
+        if issubclass(child.__class__, Parent):
+            if child.root:
+                for name in child.names:
+                    self.is_name_not_exist(name)
+        elif issubclass(child.__class__, FieldHabitude):
+            name = child.name
+            self.is_name_not_exist(name)
         self.childs.append(child)
+        child.parent = self
 
     def add_childs(self, childs):
         for child in childs:
@@ -155,11 +176,18 @@ class Parent(Ability):
     def empty_childs(self):
         self.childs = []
 
+def check_name(name, names: list, obj):
+    assert not name in names, name + ' is exist in root ' + obj.__str__()
+    names.append(name)
+    return True
+
 class ParentTag(Tag, Parent):
     type = 'parent_tag'
-    def __init__(self):
-        super().__init__()
+    def __init__(self) -> None:
+        super().__init__(root= True)
 
+    def is_name_not_exist(self, name):
+        return check_name(name, self.names, self)
         
     def for_str(self) -> str:
         info = super().for_str()
@@ -171,45 +199,48 @@ class ParentFactoryWith:
     def add_childs(self,parent:ParentTag, childs = []):
         pass
 
-parent_tag_factory_type: dict[str, ParentFactoryWith] = {}
-
 class ParentFactoryWithChildClass(ParentFactoryWith):
     type = 'with_child'
     @classmethod
     def add_childs(self, parent:ParentTag, childs = []):
         parent.add_childs(childs)
-        
-    
-parent_tag_factory_type[ParentFactoryWithChildClass.type] = ParentFactoryWithChildClass
-    
-class ParentFactoryWithDict(ParentFactoryWith):
-    type = 'with_dict'
-    @classmethod
-    def add_childs(self, parent:ParentTag, childs: list[dict] = []):
-        b = parent
-        childs = ManyTagFactory.create(childs)
-        ParentFactoryWithChildClass.add_childs(b, childs)
-    
-    
-parent_tag_factory_type[ParentFactoryWithDict.type] = ParentFactoryWithDict
 
 class ParentTagFactory(TagFactory):
     res_class = ParentTag
     @classmethod
-    def create(self, *, creation_type = 'with_dict', childs:list[dict] = [], **kwarg):
+    def create(self, childs:list[dict] = [], **kwarg):
         res_obj = super().create(**kwarg)
-        creation_type = parent_tag_factory_type[creation_type]
+        creation_type = ParentFactoryWithChildClass
         creation_type.add_childs(res_obj, childs)
         return res_obj
 
 class ChildTag(Tag, Child):
     type = 'child_tag'
 
+    def for_str(self):
+        info =  super().for_str()
+        return info + f', parent: {self.parent}'
+
 class ChildTagFactory(TagFactory):
     res_class = ChildTag
 
-class ParentAndChildTag(ParentTag, Child):
+class ParentAndChildTag(Tag, Parent, Child):
     type = 'parent_and_child_tag'
+
+    def __init__(self, parent: Parent = None) -> None:
+        root = not parent
+        super().__init__(root)
+        self.check_parent(parent)
+
+    def is_name_not_exist(self, name):
+        if self.root:
+            return check_name(name, self.names, self)
+        return self.parent.is_name_not_exist(name)
+            
+
+    def for_str(self) -> str:
+        info = super().for_str()
+        return info +  f', parent: {self.parent}, childs:{self.childs}'
 
 class ParentAndChildTagFactory(ParentTagFactory):
     res_class = ParentAndChildTag

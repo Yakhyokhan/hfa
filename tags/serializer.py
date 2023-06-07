@@ -7,17 +7,19 @@ class TagSerializer:
     def __init__(self, obj:tag):
         assert issubclass(obj.__class__, self.tag), f'{obj} is not {self.tag} class'
         self.obj = obj
-        self.data = self.get_info()
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__}({self.data})'
+        return f'{self.__class__.__name__}({self.get_info()})'
+    
+    def __repr__(self) -> str:
+        return self.__str__()
 
-    def get_info(self):
+    def get_info(self) -> dict:
         return {'type': self.obj.type}
     
     
     @classmethod
-    def create(self, kwarg: dict):
+    def create(self, **kwarg: dict):
         tag = AnyTagFactory.create(**kwarg)
         return self(tag)
     
@@ -54,10 +56,10 @@ class SerializerTypes(Types):
 class AnyTagSerializer:
 
     @classmethod
-    def create(self, kwarg: dict):
+    def create(self, **kwarg: dict):
         type = kwarg['type']
         serializer = SerializerTypes.get_type(type)
-        return serializer.create(kwarg)
+        return serializer.create(**kwarg)
     
     @classmethod
     def create_with_obj(self, obj: Tag) -> TagSerializer:
@@ -68,33 +70,44 @@ class ManyTagSerializer:
 
     def __init__(self) -> None:
         self.obj_list = []
-        self.data = []
+        self.serializers = []
 
     def add(self, obj:Tag):
         assert issubclass(obj.__class__, Tag), f'{obj} is not Tag class'
         self.obj_list.append(obj)
         serializer = AnyTagSerializer.create_with_obj(obj)
-        self.data.append(serializer.data)
+        self.serializers.append(serializer)
 
     def add_many(self, list: list[Tag]):
         for tag in list: self.add(tag)
+
+    def get_info(self):
+        return [serializer.get_info() for serializer in self.serializers]
 
     @classmethod
     def create(self, list: list[dict]):
         ins = ManyTagSerializer()
         for dict in list:
-            obj = AnyTagFactory.create(dict)
-            ins.add(obj)
+            obj = AnyTagSerializer.create(**dict)
+            ins.add(obj.obj)
         return ins
 
 class ParentTagSerializer(TagSerializer):
     tag = ParentTag
 
-    def get_info(self):
+    @classmethod
+    def create(self, childs = [], **kwarg: dict):
+        parent =  super().create(**kwarg)
+        for child in childs:
+            child['parent'] = parent.obj
+            AnyTagSerializer.create(**child)
+        return parent
+
+    def get_info(self) -> dict:
         info = super().get_info()
         serializer = ManyTagSerializer()
         serializer.add_many(self.obj.childs)
-        childs_info = serializer.data
+        childs_info = serializer.get_info()
         info['childs'] = childs_info
         return info
 
@@ -133,12 +146,23 @@ class InputSerializer(ChildTagSerializer):
 class InputWithListSerializer(InputSerializer):
     tag = InputWithList
 
+    @classmethod
+    def create(self, list = None, **kwarg: dict):
+        if list:
+            list = List.objects.get(name = list['name'], company__name = list['company_name'], company__user__username = list['username'])
+        kwarg['list'] = list
+        return super().create(**kwarg)
+
     def get_info(self):
         info = super().get_info()
-        info['list_name'] = None
         list = self.obj.list
         if list:
-            info['list_name'] = list.name
+            info['list'] = {
+            'name': list.name,
+            'company_name': list.company.name,
+            'username': list.company.user.username,
+
+            }
         return info
 
 class CheckboxSerializer(InputSerializer):
