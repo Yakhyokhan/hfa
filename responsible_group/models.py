@@ -7,7 +7,7 @@ from staff.models import ResponsiblePerson as rp
 class ResponsiblePerson(models.Model):
     responsible = models.ForeignKey(rp, on_delete=models.PROTECT)
     type = models.CharField(max_length=25)
-    next = models.ForeignKey('self', on_delete=models.PROTECT)
+    next = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True)
 
 # class Filler(ResponsiblePerson):
     type = 'filler'
