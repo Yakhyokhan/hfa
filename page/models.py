@@ -4,7 +4,6 @@ from responsible_group.models import ResponsibleGroup
 from company.models import Company
 from tags.serializer import AnyTagSerializer, ManyTagSerializer
 from tags.field_finders import AnyFieldFinder
-from value_list.models import List
 # Create your models here.
 
 class Page(models.Model):
@@ -36,7 +35,6 @@ class Page(models.Model):
     html = models.JSONField()
     responsible_group = models.ForeignKey(ResponsibleGroup, on_delete=models.PROTECT)
     inputs = models.JSONField(null=True, blank=True)
-    list = models.ManyToManyField(List, blank=True)
 
 
 
