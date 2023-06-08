@@ -52,6 +52,8 @@ class AnyFieldFinder:
 
     @classmethod
     def find(self, obj):
+        if not obj:
+            return
         find_class = TagFildFinderTypes.get_type(obj.type)
         return find_class.find(obj)
     
@@ -59,6 +61,8 @@ class ManyFieldsFinder:
 
     @classmethod
     def find(self, objs = list[Tag]):
+        if not objs:
+            return
         field_list = []
         for obj in objs:
             fields = AnyFieldFinder.find(obj)
