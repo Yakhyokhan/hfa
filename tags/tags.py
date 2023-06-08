@@ -1,5 +1,5 @@
 from .abstract_tags import TagType, ParentTag, ChildTag,ParentAndChildTag, FieldHabitude, LoopHabitude
-from page.models import List
+from value_list.models import List
 
 
 
@@ -28,13 +28,20 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
         if not label:
             label = name
         self.label = label
+        self.primary_child = None
 
     def for_str(self) -> str:
         return f'type: {self.type}, parent: {self.parent}, name:{self.name}, childs: {self.childs}'
     
     def add_child(self, child):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
-        return super().add_child(child)
+        super().add_child(child)
+        if len(self.childs) == 1:
+            self.primary_child = child
+
+    def update_primary_child(self, child):
+        assert child in self.childs, f'{child} is not exist in list childs'
+        self.primary_child = child
 
 class Input(ChildTag, FieldHabitude):
     type = 'input'
