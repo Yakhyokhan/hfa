@@ -1,3 +1,4 @@
 .gitignore
 env
 companyAdmin
+tags/db_writer.py

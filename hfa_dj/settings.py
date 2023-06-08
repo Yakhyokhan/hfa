@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'company',
     'staff',
     'responsible_group',
-    'page'
+    'page',
+    'value_list'
 ]
 
 MIDDLEWARE = [
