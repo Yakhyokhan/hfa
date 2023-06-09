@@ -182,7 +182,7 @@ class InputWithListSerializer(InputSerializer):
     @classmethod
     def create(self, list = None, **kwarg: dict):
         if list:
-            list = List.objects.get(name = list['name'], company__name = list['company_name'], company__user__username = list['username'])
+            list = List.objects.get(id = list['id'])
         kwarg['list'] = list
         return super().create(**kwarg)
 
@@ -191,10 +191,7 @@ class InputWithListSerializer(InputSerializer):
         list = self.obj.list
         if list:
             info['list'] = {
-            'name': list.name,
-            'company_name': list.company.name,
-            'username': list.company.user.username,
-
+            'id': self.obj.list.id
             }
             return info
         info['list'] = None
@@ -206,9 +203,11 @@ class InputWithListSerializerForShowing(InputWithListSerializer):
         info = super().get_info()
         list = info['list']
         if list:
+            info['list']['name'] = self.obj.list.name
             items = self.obj.list.get_items()
             items = [item.name for item in items]
             info['list']['items'] = items
+
         return info
 
 class CheckboxSerializer(InputSerializer):
