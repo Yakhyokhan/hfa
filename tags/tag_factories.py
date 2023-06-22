@@ -1,16 +1,26 @@
-from tags.abstract_tags import Tag
+from tags.abstract_tags import TagType
 from .abstract_tags import TagFactoriesType, ParentTagFactory, ChildTagFactory, ParentAndChildTagFactory
 from .tags import *
 
 class InputFactory(ChildTagFactory):
     res_class = Input
 
+    @classmethod
+    def create(self, type, value = None, **kwargs):
+        tag = TagType.get_type(type)
+        value_type = tag.value_type
+        default_value = default_values[value_type]
+        if not value:
+            value = default_value
+        return tag(value= value, **kwargs)
+        
+
 class InputWithListFactory(InputFactory):
     res_class = InputWithList
 
     @classmethod
-    def create(self,type=..., list = None, **kwarg):
-        return super().create(type, list, **kwarg)
+    def create(self,type=..., list = None, **kwargs):
+        return super().create(type, list, **kwargs)
 
 class RadioValueTypes:
 
@@ -49,7 +59,7 @@ class RadioFactory(InputFactory):
         if not with_cls:
             value_type = RadioValueTypes.get_cls(value_type)
         if not value:
-            value = radio_default_value[value_type]
+            value = default_values[value_type]
 
         kwarg['value_type'] = value_type
         kwarg['value'] = value

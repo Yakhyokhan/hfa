@@ -89,7 +89,7 @@ class Checkbox(Input):
         super().__init__(name, value, parent, label)
         self.is_checked = is_checked
 
-radio_default_value = {
+default_values = {
     str: '',
     int: 0,
     float: 0.00,
@@ -113,7 +113,7 @@ class Radio(Input):
             self.check_any_value(item)
 
     def check_value(self, value):
-        assert value in self.radio_list or value == radio_default_value[self.value_type], \
+        assert value in self.radio_list or value == default_values[self.value_type], \
             f'{value} is not available in radio_list:{self.radio_list}'
 
     def for_str(self):
