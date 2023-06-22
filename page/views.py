@@ -5,6 +5,10 @@ from .models import Html
 
 # Create your views here.
 
-class HtmlCreateListView(generics.CreateAPIView):
+class HtmlCreateView(generics.CreateAPIView):
+    queryset = Html.objects.all()
+    serializer_class = HtmlSerializer
+
+class HtmlDetailView(generics.RetrieveAPIView):
     queryset = Html.objects.all()
     serializer_class = HtmlSerializer
