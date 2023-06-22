@@ -19,7 +19,7 @@ class TagFieldFinder(TagNotFieldFinder):
     @classmethod
     def is_field(self, obj):
         if issubclass(obj.__class__, FieldHabitude):
-            return obj
+            return [obj]
 
 class TagFildFinderTypes(Types):
     types = {}
@@ -69,8 +69,6 @@ class ManyFieldsFinder:
             if type(fields) == list:
                 for field in fields: field_list.append(field)
                 continue
-            if fields != None:
-                field_list.append(fields)
         return field_list
     
 class ParentNotFieldFinder(TagFieldFinder):
