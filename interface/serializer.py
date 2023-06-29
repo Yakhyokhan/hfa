@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..page.models import Html
+from .models import Html
 from tags.serializer import (ManyTagSerializerForShowing, AnyTagSerializerForShowing, 
     AnyTagSerializer, ManyTagSerializer)
 
