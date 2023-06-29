@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'staff',
     'responsible_group',
     'page',
-    'value_list'
+    'value_list',
+    'interface'
 ]
 
 MIDDLEWARE = [
