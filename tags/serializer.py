@@ -114,10 +114,9 @@ class ParentTagSerializer(TagSerializer):
 
     @classmethod
     def create(self, childs = [], **kwarg: dict):
+        childs = [self.creation_serializer.create(**child).obj for child in childs]
+        kwarg["childs"] = childs
         parent =  super().create(**kwarg)
-        for child in childs:
-            child['parent'] = parent.obj
-            self.creation_serializer.create(**child)
         return parent
 
     def get_info(self) -> dict:
@@ -160,6 +159,7 @@ class ListTagSerializer(ParentAndChildTagSerializer):
     def get_info(self):
         info = super().get_info()
         info['name'] = self.obj.name
+        info["primary_child": self.obj.primary_child]
         return info
     
 class ListTagSerializerForShowing(ListTagSerializer):
@@ -170,10 +170,12 @@ class InputSerializer(ChildTagSerializer):
     tag = Input
 
     def get_info(self):
+        obj = self.obj
         info = super().get_info()
-        info['name'] = self.obj.name
-        info['value'] = self.obj.value
-        info['label'] = self.obj.label
+        info["required"] = obj.required
+        info['name'] = obj.name
+        info['value'] = obj.value
+        info['label'] = obj.label
         return info
     
 class InputWithListSerializer(InputSerializer):

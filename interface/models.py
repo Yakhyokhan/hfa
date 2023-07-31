@@ -1,7 +1,10 @@
 from django.db import models
 from tags.serializer import AnyTagSerializer, ManyTagSerializer
 from tags.field_finders import AnyFieldFinder
+from tags.abstract_tags import Parent
 from typing import Any
+from django.dispatch import Signal
+from django.db.models.signals import post_save
 
 # Create your models here.
 
@@ -42,15 +45,41 @@ class ManyTagField(models.JSONField):
 class Html(models.Model):
     name = models.CharField(max_length=50)
     tags = TagField()
-    inputs = ManyTagField(null=True, blank=True)
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        if self.inputs == None:
-            self.inputs = AnyFieldFinder.find(self.tags)
 
-    def save(self, force_insert = False, force_update = False, using = None, update_fields = None):
-        self.inputs = AnyFieldFinder.find(self.tags)
-        if update_fields is not None and "inputs" in update_fields:
-            update_fields = {"inputs"}.union(update_fields)
-        super().save(force_insert, force_update, using, update_fields)
+class HtmlInputs(models.Model):
+    html = models.OneToOneField(Html, on_delete=models.CASCADE)
+    inputs = models.JSONField(null=True, blank=True)
+    required_fields = models.JSONField(null=True, blank=True)
+
+
+def signal_html_input(sender, instance: Html, created, **kwarg):
+    inputs = AnyFieldFinder.find(instance.tags)
+    info = [x.get_input_info() for x in inputs if inputs]
+    def info_to_json(info: list[dict]):
+        res = {}
+        required = []
+        for item in info:
+            name = item.pop("name")
+            if "childs" in item:
+                childs = item.pop("childs")
+                childs, child_rq = info_to_json(childs)
+                required += child_rq
+                res.update(childs)
+            else:
+                if item["required"] == True:
+                    required.append(name)
+            res[name] = item
+        print(res)
+        return res, required
+    inputs, required = info_to_json(info)
+
+    if created:
+        HtmlInputs.objects.create(html = instance, inputs = inputs, required_fields = required)
+        return
+    input_ins = HtmlInputs.objects.get(html = instance)
+    input_ins.inputs = inputs
+    input_ins.required_fields = required
+    input_ins.save()
+    
+Signal.connect(post_save, signal_html_input, Html)

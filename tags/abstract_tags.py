@@ -208,7 +208,7 @@ class ParentFactoryWithChildClass(ParentFactoryWith):
 class ParentTagFactory(TagFactory):
     res_class = ParentTag
     @classmethod
-    def create(self, childs:list[dict] = [], **kwarg):
+    def create(self, childs:list[Tag] = [], **kwarg):
         res_obj = super().create(**kwarg)
         creation_type = ParentFactoryWithChildClass
         creation_type.add_childs(res_obj, childs)
@@ -253,6 +253,9 @@ class FieldHabitude(Habitude):
         self.name: str
         self.label: str
 
+    def get_input_info(self):
+        return {"type": self.name}
+
 class LoopHabitude(Habitude):
     pass
 
@@ -262,3 +265,4 @@ class LoopHabitude(Habitude):
 
 # parent = AnyTagFactory.create(**{'type':'parent_tag', 'childs': [{'type': 'parent_and_child_tag', 'childs': [{'type': 'child_tag'},{'type': 'child_tag'}]}]})
 # print(parent)
+# {"type":"body", "childs": [{"type": "list", "name":"Anvar", "childs": [{"type": "input_string", "name":"Eshmat"},{"type": "input_string", "name":"Toshmat"}]}]}

@@ -2,6 +2,16 @@ from tags.abstract_tags import TagType
 from .abstract_tags import TagFactoriesType, ParentTagFactory, ChildTagFactory, ParentAndChildTagFactory
 from .tags import *
 
+class ListTagFactory(ParentAndChildTagFactory):
+    res_class = ListTag
+
+    @classmethod
+    def create(self, primary_child: str, childs, **kwarg):
+        assert childs, f"childs must be contained some childs in ListTag"
+        info = super().create(childs, **kwarg)
+        info.update_primary_child(primary_child)
+        return info
+
 class InputFactory(ChildTagFactory):
     res_class = Input
 
@@ -70,7 +80,7 @@ TagFactoriesType.add_clses_with_cls([
     [Body, ParentTagFactory],
     [Div, ParentAndChildTagFactory],
     [FieldSet, ParentAndChildTagFactory],
-    [ListTag, ParentAndChildTagFactory],
+    [ListTag, ListTagFactory],
     [StringInput, InputFactory],
     [IntegerInput, InputFactory],
     [FloatInput, InputFactory],

@@ -6,6 +6,7 @@ from tags.serializer import (ManyTagSerializerForShowing, AnyTagSerializerForSho
 
 class AnyTagField(serializers.JSONField):
     def to_internal_value(self, data):
+        data = super().to_internal_value(data)
         return AnyTagSerializer.create(**data).obj
     
     def to_representation(self, value):

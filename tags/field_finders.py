@@ -94,7 +94,7 @@ class ParentFieldFinder(ParentNotFieldFinder, TagFieldFinder):
                 new_obj.names = []
             new_obj.childs = []
             new_obj.add_childs(childs)
-            return new_obj
+            return [new_obj]
         return childs
 
 TagFildFinderTypes.add_clses_with_tag([

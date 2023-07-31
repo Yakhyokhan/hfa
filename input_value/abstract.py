@@ -37,7 +37,7 @@ class ValueTypes:
 #     def __init__(self, input: input_type, value: value_type):
 #         input_type = self.input_type
 #         value_type = self.value_type
-#         if not issubclass(input.__class__, input_type): 
+#         if not issubclass(input.__class__, input_type):
 #             raise validators.ValidationError(f'{input}is not subclass {input_type}')
 #         if not issubclass(value.__class__, value_type):
 #             raise validators.ValidationError(f'{value} is not subclass {value_type}')
@@ -57,7 +57,7 @@ class FloatValue(ValueWithType):
     value_type = float
 
 class BooleanValue(ValueWithType):
-    type = "booolean"
+    type = "boolean"
     value_type = bool
 
 class ListItem:

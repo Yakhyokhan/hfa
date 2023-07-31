@@ -1,4 +1,4 @@
-from .abstract_tags import TagType, ParentTag, ChildTag,ParentAndChildTag, FieldHabitude, LoopHabitude
+from .abstract_tags import TagType, ParentTag, ChildTag,ParentAndChildTag, FieldHabitude, LoopHabitude, Parent
 from value_list.models import List
 
 
@@ -31,24 +31,45 @@ class ListTag(ParentAndChildTag, FieldHabitude, LoopHabitude):
         self.primary_child = None
 
     def for_str(self) -> str:
-        return f'type: {self.type}, parent: {self.parent}, name:{self.name}, childs: {self.childs}'
+        return f'type: {self.type}, parent: {self.parent}, name:{self.name}, primary_child: {self.primary_child}, childs: {self.childs}'
     
     def add_child(self, child):
         assert not type(child) == ListTag, 'List objects don\'t acsess itself'
         super().add_child(child)
-        if len(self.childs) == 1:
-            self.primary_child = child
 
-    def update_primary_child(self, child):
-        assert child in self.childs, f'{child} is not exist in list childs'
-        self.primary_child = child
+    
+    def find_primary(self, childs, p_child_name):
+        for child in childs:
+            if issubclass(child.__class__, Parent): 
+                p_child = self.check_primary(child.childs, p_child_name)
+                if p_child: 
+                    return p_child
+            if issubclass(child.__class__, Input):
+                if child.name == p_child_name: 
+                    return child
+        return None
+
+    def update_primary_child(self, p_child_name):
+        p_child = self.find_primary(self.childs, p_child_name)
+        assert p_child, f"{p_child_name} is not exist in childs {self.childs}"
+        self.primary_child = p_child.name
+        p_child.required = True
+
+    def get_input_info(self):
+        parent = self.parent.name if self.parent else None
+        primary_child = self.primary_child
+        info =  {"type":self.type, "name":self.name, "parent":parent, "primary_child": primary_child,
+                 "childs":[x.get_input_info() for x in self.childs if issubclass(x.__class__, FieldHabitude)]
+                 }
+        return info
 
 class Input(ChildTag, FieldHabitude):
     type = 'input'
     value_type: object
-    def __init__(self, name, value, parent = None, label = None) -> None:
+    def __init__(self, name, value, parent = None, label = None, required = False) -> None:
         assert  type(value) == self.value_type, f'{value} is not {self.value_type.__name__}'
         self.name = name
+        self.required = required
         super().__init__(parent)
         self.value = value
         if not label:
@@ -57,13 +78,20 @@ class Input(ChildTag, FieldHabitude):
 
     def for_str(self):
         info = super().for_str()
-        return info +  f', name:\'{self.name}\', value:\'{self.value}\''
+        return info +  f', name:\'{self.name}\', value:\'{self.value}\', required: {self.required}'
+    
+    def get_input_info(self):
+        parent = self.parent
+        if parent:
+            parent = parent.name
+        info = {"type":self.type, "parent": parent, "name": self.name, "required":self.required}
+        return info
     
 class InputWithList(Input):
     type = 'input_with_list'
-    def __init__(self, name, parent = None, label = None, value='', list: List = None) -> None:
+    def __init__(self, name, parent = None, label = None, value='', list: List = None, required = False) -> None:
         assert list == None or isinstance(list, List), f'{list} is not List model'
-        super().__init__(name, value, parent, label)
+        super().__init__(name, value, parent, label, required)
         self.list = list
 
     def for_str(self):
@@ -84,10 +112,7 @@ class FloatInput(InputWithList):
 
 class Checkbox(Input):
     type = 'checkbox'
-    value_type = str
-    def __init__(self, name, parent = None, value= True, is_checked = False, label = None) -> None:
-        super().__init__(name, value, parent, label)
-        self.is_checked = is_checked
+    value_type = bool
 
 default_values = {
     str: '',
